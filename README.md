@@ -43,8 +43,8 @@ A comprehensive full-stack web application for legal services management, built 
 
 1. **Clone and Install**
    ```bash
-   git clone <repository-url>
-   cd legal-dashboard
+   git clone https://github.com/Ikhsaln/BeyondLaw-Dashboard.git
+   cd BeyondLaw-Dashboard
    npm install
    ```
 
@@ -53,10 +53,10 @@ A comprehensive full-stack web application for legal services management, built 
    # Generate Prisma client
    npx prisma generate
 
-   # Run database migrations
-   npx prisma migrate dev --name init
+   # Run all database migrations (includes latest schema updates)
+   npx prisma migrate deploy
 
-   # Seed with sample data
+   # (Optional) Seed with sample data
    npx tsx prisma/seed.ts
    ```
 
@@ -67,6 +67,7 @@ A comprehensive full-stack web application for legal services management, built 
 
    # Update JWT_SECRET in .env (required for production)
    JWT_SECRET=your-super-secret-jwt-key
+   DATABASE_URL="file:./dev.db"
    ```
 
 4. **Start Development Server**
@@ -161,31 +162,33 @@ model User {
   name      String
   email     String   @unique
   password  String
-  role      String   @default("client")
+  role      String   @default("client") // admin or client
   createdAt DateTime @default(now())
   orders    Order[]
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  price       Float
-  category    String
-  createdAt   DateTime @default(now())
-  orders      Order[]
+  id             String   @id @default(cuid())
+  title          String
+  description    String?
+  price          Float
+  category       String
+  processingTime String?  // Processing time options: 1-7 hari, 1-2 minggu, 2-3 minggu, 3-4 minggu
+  whatsIncluded  String?  // JSON string array of features
+  createdAt      DateTime @default(now())
+  orders         Order[]
 }
 
 model Order {
   id            String   @id @default(cuid())
   userId        String
   productId     String
-  status        String   @default("pending")
+  status        String   @default("pending") // pending, in_progress, completed
   paymentMethod String?
   invoiceUrl    String?
   createdAt     DateTime @default(now())
-  user          User     @relation(fields: [userId], references: [id])
-  product       Product  @relation(fields: [productId], references: [id])
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Analytics {
